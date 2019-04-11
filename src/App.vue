@@ -23,6 +23,7 @@ export default {
 
 <style lang="scss" scoped>
 #app {
+  overflow: hidden;
   display: flex;
   flex-wrap: wrap;
   height: 100vh;

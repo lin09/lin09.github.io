@@ -4,12 +4,13 @@
     <div class="right">
       <div v-if="fullscreenEnabled" v-show="!isFullscreen" class="icon" @click="requestFullscreen" title="全屏"><IconFull/></div>
       <div v-if="isFullscreen" v-show="isFullscreen" class="icon" @click="exitFullscreen" title="退出全屏(ESC)"><IconExitFull/></div>
-      <div class="icon" title="登录"><IconAccount/></div>
+      <div class="icon" title="登录" @click="toggleLogin(true)"><IconAccount/></div>
     </div>
   </header>
 </template>
 
 <script>
+import { mapMutations } from 'vuex'
 import IconAccount from '@/components/icons/Account'
 import IconFull from '@/components/icons/Full'
 import IconExitFull from '@/components/icons/ExitFull'
@@ -22,6 +23,7 @@ export default {
     }
   },
   methods: {
+    ...mapMutations(['toggleLogin']),
     requestFullscreen () {
       document.documentElement.requestFullscreen()
     },

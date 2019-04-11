@@ -2,8 +2,8 @@
   <header>
     <div class="left"></div>
     <div class="right">
-      <div v-if="fullscreenEnabled" v-show="!isFullscreen" class="icon" @click="requestFullscreen" title="全屏(F11)"><IconFull/></div>
-      <div v-if="isFullscreen" v-show="isFullscreen" class="icon" @click="exitFullscreen" title="退出全屏(F11)"><IconExitFull/></div>
+      <div v-if="fullscreenEnabled" v-show="!isFullscreen" class="icon" @click="requestFullscreen" title="全屏"><IconFull/></div>
+      <div v-if="isFullscreen" v-show="isFullscreen" class="icon" @click="exitFullscreen" title="退出全屏(ESC)"><IconExitFull/></div>
       <div class="icon" title="登录"><IconAccount/></div>
     </div>
   </header>
@@ -30,7 +30,9 @@ export default {
     }
   },
   mounted () {
-    document.addEventListener('fullscreenchange', () => this.isFullscreen = document.fullscreen )
+    document.addEventListener('fullscreenchange', () => {
+      this.isFullscreen = !!document.fullscreenElement
+    })
   }
 }
 </script>
@@ -44,7 +46,7 @@ header {
   border-radius: 16px;
   width: 100%;
   height: 32px;
-  background-color: #c1c6c9;
+  background: linear-gradient(to right, #79a6c2, #c1c6c9);
 }
 
 .left,

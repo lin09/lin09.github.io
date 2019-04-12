@@ -27,6 +27,6 @@ export default {
   display: flex;
   flex-wrap: wrap;
   height: 100vh;
-  background-color: #e2ebb3;
+  background-color: #f2f5f6;
 }
 </style>

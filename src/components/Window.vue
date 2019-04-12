@@ -5,15 +5,17 @@
   :style="{ 'z-index': zIndex, width: !!width && width + 'px', height: !!height && height + 'px' }">
     <div class="window-header" @dblclick="handleFull" @mousedown="handleMousedown">
       <div @mousedown.stop class="rigth">
-        <div class="icon" @click="handleClose"><IconMinus/></div>
-        <div v-show="!isFull" class="icon" @click="handleFull"><IconSquare/></div>
-        <div v-show="isFull" class="icon" @click="handleFull"><IconSquares/></div>
-        <div v-if="fullscreenEnabled" v-show="!isFullscreen" class="icon" @click="requestFullscreen" title="全屏"><IconFull/></div>
-        <div class="icon icon-close" @click="handleClose"><ClearIcon/></div>
+        <div class="pointer icon" @click="handleClose"><IconMinus/></div>
+        <div v-show="!isFull" class="pointer icon" @click="handleFull"><IconSquare/></div>
+        <div v-show="isFull" class="pointer icon" @click="handleFull"><IconSquares/></div>
+        <div v-if="fullscreenEnabled" v-show="!isFullscreen" class="pointer icon" @click="requestFullscreen" title="全屏"><IconExpand/></div>
+        <div class="pointer icon icon-close" @click="handleClose"><ClearIcon/></div>
       </div>
     </div>
     <div class="window-body" ref="window">
-      <div v-if="isFullscreen" v-show="isFullscreen" class="icon-exit-full" @click="exitFullscreen" title="退出全屏(ESC)"><IconExitFull/></div>
+      <div v-if="isFullscreen" v-show="isFullscreen" class="icon-exit-full" @click="exitFullscreen" title="退出全屏(ESC)">
+        <div class="pointer icon"><IconCompress/></div>
+      </div>
       <slot></slot>
     </div>
   </dialog>
@@ -22,18 +24,18 @@
 <script>
 import { mapState, mapMutations } from 'vuex'
 import ClearIcon from '@/components/icons/Clear'
-import IconFull from '@/components/icons/Full'
-import IconExitFull from '@/components/icons/ExitFull'
+import IconExpand from '@/components/icons/Expand'
+import IconCompress from '@/components/icons/Compress'
 import IconSquare from '@/components/icons/Square'
 import IconSquares from '@/components/icons/Squares'
 import IconMinus from '@/components/icons/Minus'
 
 export default {
-  components: { ClearIcon, IconFull, IconExitFull, IconSquare, IconSquares, IconMinus },
+  components: { ClearIcon, IconExpand, IconCompress, IconSquare, IconSquares, IconMinus },
   props: {
     // 窗口名，可用于切换窗口
     name: String,
-    // 是否打开
+    // 是否打开窗口
     open: Boolean,
     // 相对左边的位置
     left: Number,
@@ -47,9 +49,8 @@ export default {
   },
   data() {
     return {
+      // 是否打开窗口
       isOpen: this.open,
-      // 加入时的叠层位置，在mounted初始化
-      initZIndex: 0,
       // 实际应用上的叠层位置值
       zIndex: 0,
       // 窗口宽度和高度值为了动画效果，在open时初始化
@@ -70,28 +71,48 @@ export default {
   },
   computed: mapState({
     // 活动窗口的uid
-    activeUid: state => state.window.activeUid
+    activeUid: state => state.window.activeUid,
+    windows: state => state.window.windows
   }),
   watch: {
     activeUid () {
-      // 叠层设置
       if (this.activeUid === this._uid) {
+        // 激活窗口时才打开窗口
         this.isOpen = true
-        this.zIndex = this.$store.state.window.count
-      } else {
-        this.zIndex = this.initZIndex
       }
     },
+    windows () {
+      // 更新叠层位置
+      this.zIndex = this.windows[this._uid].zIndex
+    },
     open () {
+      // 外部打开窗口；建议使用 toggleWindow 打开窗口
       this.isOpen = this.open
     },
     isOpen () {
+      // 回调窗口打开状态
       this.$emit('changeWindow', this.isOpen)
       if (this.isOpen === true) {
-        this.translateX = this.translateX === undefined ? this.initZIndex * 50 : this.translateX
-        this.translateY = this.translateY === undefined ? this.initZIndex * 30 : this.translateY
+        // 打开时触发一下窗口显示统计
+        this.incrementWindow(this._uid)
         // 延时作用于动画效果
         setTimeout(() => {
+          // 根据窗口显示过数量初始化窗口位置
+          if (this.translateX === undefined) {
+            this.translateX = this.$store.state.window.count * 50
+            let maxWidth = document.documentElement.clientWidth - 50
+            if (this.translateX >= maxWidth) {
+              this.translateX -= Math.floor(this.translateX / maxWidth) * Math.floor(maxWidth / 50) * 50
+            }
+          }
+          if (this.translateY === undefined) {
+            this.translateY = this.$store.state.window.count * 30
+            let maxHeigth = document.documentElement.clientHeigth - 30
+            if (this.translateX >= maxHeigth) {
+              this.translateX -= Math.floor(this.translateX / maxHeigth) * Math.floor(maxHeigth / 30) * 30
+            }
+          }
+          // 激活窗口
           this.handleActive()
           // 显示
           this.visibility = true
@@ -110,11 +131,8 @@ export default {
     }
   },
   mounted () {
-    // 加入时的叠层位置
-    this.initZIndex = this.$store.state.window.count
-    this.zIndex = this.initZIndex
     // 统计窗口数量
-    this.incrementWindow({ uid: this._uid, name: this.name })
+    this.addWindow({ uid: this._uid, name: this.name })
 
     // 全屏事件
     document.addEventListener('fullscreenchange', this.handleFullscreenchange)
@@ -124,19 +142,20 @@ export default {
     document.removeEventListener('fullscreenchange', this.handleFullscreenchange)
   },
   methods: {
-    ...mapMutations(['toggleWindow', 'incrementWindow']),
+    ...mapMutations(['toggleWindow', 'incrementWindow', 'addWindow']),
     handleActive () {
       // 活动窗口
       this.toggleWindow({ uid: this._uid })
     },
     handleMousedown (e) {
+      // 移动窗口
       // 非左键 或 满屏 退出
       if (e.buttons !== 1 || this.isFull) {
         return false
       }
       // 活动窗口
-      this.toggleWindow({ uid: this._uid })
-      // 文字选择
+      this.handleActive()
+      // 存储文字选择
       let userSelect = document.body.style.userSelect
       // 禁止动画
       this.$el.style.transitionDuration = '0s'
@@ -223,6 +242,7 @@ dialog {
   color: #333;
   box-shadow: 0 0 6px 1px rgba(0, 0, 0, 0.1);
   opacity: 0;
+  transform: scale(0.6);
   transition: all cubic-bezier(0.18, 0.89, 0.32, 1.28) 0.8s;
 
   &.show {
@@ -253,8 +273,6 @@ dialog {
     align-items: center;
     opacity: 0.5;
     width: 30px;
-    cursor: pointer;
-    -webkit-tap-highlight-color: rgba(0,0,0,0);
     svg {
       width: 15px;
       height: 15px;
@@ -271,13 +289,20 @@ dialog {
 .window-body {
   background-color: #fff;
   .icon-exit-full {
+    display: flex;
+    justify-content: flex-end;
     margin: 20px;
-    text-align: right;
-    height: 20px;
-    cursor: pointer;
-    -webkit-tap-highlight-color: rgba(0,0,0,0);
-    svg {
-      width: 20px;
+
+    .icon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 30px;
+      height: 30px;
+
+      svg {
+        width: 20px;
+      }
     }
   }
 }

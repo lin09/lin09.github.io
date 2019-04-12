@@ -2,9 +2,9 @@
   <header>
     <div class="left"></div>
     <div class="right">
-      <div v-if="fullscreenEnabled" v-show="!isFullscreen" class="icon" @click="requestFullscreen" title="全屏"><IconFull/></div>
-      <div v-if="isFullscreen" v-show="isFullscreen" class="icon" @click="exitFullscreen" title="退出全屏(ESC)"><IconExitFull/></div>
-      <div class="icon" title="登录" @click="toggleWindow({ name: 'login' })"><IconAccount/></div>
+      <div v-if="fullscreenEnabled" v-show="!isFullscreen" class="pointer icon" @click="requestFullscreen" title="全屏"><IconExpand/></div>
+      <div v-if="isFullscreen" v-show="isFullscreen" class="pointer icon" @click="exitFullscreen" title="退出全屏(ESC)"><IconCompress/></div>
+      <div class="pointer icon" title="登录" @click="toggleWindow({ name: 'login' })"><IconAccount/></div>
     </div>
   </header>
 </template>
@@ -12,10 +12,10 @@
 <script>
 import { mapMutations } from 'vuex'
 import IconAccount from '@/components/icons/Account'
-import IconFull from '@/components/icons/Full'
-import IconExitFull from '@/components/icons/ExitFull'
+import IconExpand from '@/components/icons/Expand'
+import IconCompress from '@/components/icons/Compress'
 export default {
-  components: { IconAccount, IconFull, IconExitFull },
+  components: { IconAccount, IconExpand, IconCompress },
   data () {
     return {
       isFullscreen: document.fullscreen,
@@ -57,8 +57,12 @@ header {
 }
 
 .icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
   color: #666;
-  cursor: pointer;
 
   svg {
     width: 20px;
@@ -68,10 +72,6 @@ header {
   &[disabled] {
     color: #999;
     cursor: no-drop;
-  }
-
-  & + .icon {
-    margin-left: 8px;
   }
 }
 </style>

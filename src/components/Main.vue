@@ -1,5 +1,6 @@
 <template>
   <main>
+    <Apps/>
     <Login/>
     <Register/>
   </main>
@@ -8,8 +9,9 @@
 <script>
 import Login from '@/components/Login'
 import Register from '@/components/Register'
+import Apps from '@/components/Apps'
 export default {
-  components: { Login, Register }
+  components: { Login, Register, Apps }
 }
 </script>
 

@@ -31,18 +31,14 @@ import IconMinus from '@/components/icons/Minus'
 export default {
   components: { ClearIcon, IconFull, IconExitFull, IconSquare, IconSquares, IconMinus },
   props: {
+    // 窗口名，可用于切换窗口
+    name: String,
     // 是否打开
     open: Boolean,
     // 相对左边的位置
-    left: {
-      type: Number,
-      default: 0
-    },
+    left: Number,
     // 相对顶部的位置
-    top: {
-      type: Number,
-      default: 0
-    },
+    top: Number,
     // 是否满屏窗口
     full: {
       type: Boolean,
@@ -80,6 +76,7 @@ export default {
     activeUid () {
       // 叠层设置
       if (this.activeUid === this._uid) {
+        this.isOpen = true
         this.zIndex = this.$store.state.window.count
       } else {
         this.zIndex = this.initZIndex
@@ -87,9 +84,15 @@ export default {
     },
     open () {
       this.isOpen = this.open
-      if (this.open === true) {
+    },
+    isOpen () {
+      this.$emit('changeWindow', this.isOpen)
+      if (this.isOpen === true) {
+        this.translateX = this.translateX === undefined ? this.initZIndex * 50 : this.translateX
+        this.translateY = this.translateY === undefined ? this.initZIndex * 30 : this.translateY
         // 延时作用于动画效果
         setTimeout(() => {
+          this.handleActive()
           // 显示
           this.visibility = true
           if (this.isFull === false) {
@@ -104,9 +107,6 @@ export default {
           }
         }, 10)
       }
-    },
-    isOpen () {
-      this.$emit('changeWindow', this.isOpen)
     }
   },
   mounted () {
@@ -114,7 +114,7 @@ export default {
     this.initZIndex = this.$store.state.window.count
     this.zIndex = this.initZIndex
     // 统计窗口数量
-    this.incrementWindow()
+    this.incrementWindow({ uid: this._uid, name: this.name })
 
     // 全屏事件
     document.addEventListener('fullscreenchange', this.handleFullscreenchange)
@@ -124,10 +124,10 @@ export default {
     document.removeEventListener('fullscreenchange', this.handleFullscreenchange)
   },
   methods: {
-    ...mapMutations(['toggleWindowActive', 'incrementWindow']),
+    ...mapMutations(['toggleWindow', 'incrementWindow']),
     handleActive () {
       // 活动窗口
-      this.toggleWindowActive(this._uid)
+      this.toggleWindow({ uid: this._uid })
     },
     handleMousedown (e) {
       // 非左键 或 满屏 退出
@@ -135,7 +135,7 @@ export default {
         return false
       }
       // 活动窗口
-      this.toggleWindowActive(this._uid)
+      this.toggleWindow({ uid: this._uid })
       // 文字选择
       let userSelect = document.body.style.userSelect
       // 禁止动画
@@ -149,12 +149,12 @@ export default {
         // 恢复动画
         this.$el.style.transitionDuration = ''
         // 不越过左边
-        if (this.left < 0 - this.translateX) {
-          this.translateX = 0 - this.left
+        if (this.translateX < 0) {
+          this.translateX = 0
         }
         // 不越过顶部
-        if (this.top < 0 - this.translateY) {
-          this.translateY = 0 - this.top
+        if (this.translateY < 0) {
+          this.translateY = 0
         }
         // 设置位置
         this.$el.style.transform = `scale(1) translate(${this.translateX }px, ${ this.translateY }px)`
@@ -189,6 +189,8 @@ export default {
       // 隐藏
       this.visibility = false
       setTimeout(() => {
+        // 去掉活动窗口
+        this.toggleWindow()
         // 关闭窗口
         this.isOpen = false
       }, 350)

@@ -1,15 +1,15 @@
 <template>
-  <Window name="login">
-    <div class="login">
-      <h3 class="title">登录</h3>
-      <form class="form" action="/login" @submit.prevent="handleSubmit">
+  <Window name="register">
+    <div class="register">
+      <h3 class="title">注册</h3>
+      <form class="form" action="/register" @submit.prevent="handleSubmit">
         <Input placeholder="用户名"/>
         <Input type="password" placeholder="密码"/>
+        <Input type="password" placeholder="确认密码"/>
         <Button class="submit" type="submit">提交</Button>
       </form>
       <div class="links">
-        <div class="link" @click.stop="toggleWindow({ name: 'register' })">注册账号</div>
-        <div class="link">忘记密码</div>
+        <div class="link" @click.stop="toggleWindow({ name: 'login' })">账号登录</div>
       </div>
     </div>
   </Window>
@@ -32,7 +32,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.login {
+.register {
   margin: auto;
   padding: 40px;
   width: 380px;

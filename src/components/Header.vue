@@ -4,7 +4,7 @@
     <div class="right">
       <div v-if="fullscreenEnabled" v-show="!isFullscreen" class="icon" @click="requestFullscreen" title="全屏"><IconFull/></div>
       <div v-if="isFullscreen" v-show="isFullscreen" class="icon" @click="exitFullscreen" title="退出全屏(ESC)"><IconExitFull/></div>
-      <div class="icon" title="登录" @click="toggleLogin(true)"><IconAccount/></div>
+      <div class="icon" title="登录" @click="toggleWindow({ name: 'login' })"><IconAccount/></div>
     </div>
   </header>
 </template>
@@ -23,7 +23,7 @@ export default {
     }
   },
   methods: {
-    ...mapMutations(['toggleLogin']),
+    ...mapMutations(['toggleWindow']),
     requestFullscreen () {
       document.documentElement.requestFullscreen()
     },
